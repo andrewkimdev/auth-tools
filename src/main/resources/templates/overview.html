@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Roadmap: Building a Secure Auth System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Neutrals -->
+    <!-- Application Structure Plan: The SPA is structured as an interactive, phased guide. The core design uses a tab-based navigation for the three main phases (Foundation, Advanced, Hardening) to provide a clear, step-by-step user flow. This was chosen over a simple long-scroll page to break down the dense information into manageable chunks, enhancing focus and comprehension. Within each phase, key steps are presented as interactive cards that expand on click, revealing details on demand. This progressive disclosure technique prevents overwhelming the user. The application begins with an overview of the core JWT architecture, visualized as a simple flow diagram using HTML/CSS, to ground the user in the fundamental concepts before they dive into the implementation steps. A summary chart at the end provides a synthesized, comparative view of the different features, fulfilling the data visualization requirement and offering a final "at-a-glance" summary. This structure transforms the linear text document into an exploratory learning tool. -->
+    <!-- Visualization & Content Choices:
+        - Report Info: 'Architectural Overview' text. Goal: Explain the core JWT flow. Viz/Method: HTML/CSS flexbox-based flow diagram with numbered steps and icons. Interaction: Static visual aid. Justification: Provides a crucial visual anchor for the text-heavy content, making the abstract process concrete. Library: Tailwind CSS.
+        - Report Info: The three implementation phases and their steps. Goal: Guide the user through the roadmap. Viz/Method: Tabbed navigation for phases and a grid of expandable cards for steps. Interaction: Click to switch phases, click to expand/collapse cards. Justification: This is the primary interactive mechanism, making the roadmap explorable and reducing cognitive load. Library: Vanilla JS for state and DOM manipulation.
+        - Report Info: Concepts like 'Password Encryption', 'Social Login', '2FA'. Goal: Provide quick visual cues. Viz/Method: Unicode emoji icons (e.g., 🛡️, 👥, 📱). Interaction: N/A. Justification: Simple, lightweight method to add visual distinction without images/SVG. Library: N/A.
+        - Report Info: Synthesized view of advanced features. Goal: Compare features on multiple dimensions. Viz/Method: Radar Chart. Interaction: Hover over points to see tooltips with ratings. Justification: Meets the requirement for a dynamic chart and provides a powerful comparative summary of qualitative concepts (complexity, security impact), adding a "dashboard-like" analytical element. Library: Chart.js.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tab-active {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .tab-inactive {
+            background-color: #e5e7eb; /* gray-200 */
+            color: #374151; /* gray-700 */
+        }
+        .card-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .card.open .card-details {
+            max-height: 1000px; /* Large enough to fit content */
+        }
+        .card .chevron {
+            transition: transform 0.3s ease-in-out;
+        }
+        .card.open .chevron {
+            transform: rotate(180deg);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 50vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div class="container mx-auto p-4 md:p-8 max-w-7xl">
+
+    <!-- Header -->
+    <header class="text-center mb-10">
+        <h1 class="text-4xl md:text-5xl font-bold text-slate-900">Interactive Roadmap</h1>
+        <p class="text-lg md:text-xl text-blue-600 mt-2">Building a Secure Authentication System with Spring Boot</p>
+    </header>
+
+    <!-- Introduction & Architecture Flow -->
+    <section id="introduction" class="mb-12 bg-white p-6 rounded-xl shadow-sm">
+        <h2 class="text-2xl font-bold mb-4 text-slate-900">Welcome to the Roadmap</h2>
+        <p class="mb-6 text-slate-600">This interactive guide translates the complex process of building a modern, secure authentication system into a clear, step-by-step journey. The roadmap is divided into three logical phases: setting the foundation, implementing advanced methods, and hardening for production. Use the tabs to navigate between phases, and click on any card to explore the detailed implementation steps. To begin, let's review the core architecture you'll be building.</p>
+
+        <h3 class="text-xl font-bold mb-6 text-center text-slate-800">Core Architecture: Token-Based (JWT) Flow</h3>
+        <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 md:space-x-4 text-center">
+            <!-- Step 1: Auth -->
+            <div class="flex-1 flex flex-col items-center">
+                <div class="bg-blue-100 text-blue-700 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shadow">1</div>
+                <p class="mt-2 font-semibold">Authenticate</p>
+                <p class="text-sm text-slate-500">User provides credentials (e.g., password, social login).</p>
+            </div>
+            <div class="text-2xl text-slate-400 hidden md:block">→</div>
+            <!-- Step 2: Issue Token -->
+            <div class="flex-1 flex flex-col items-center">
+                <div class="bg-blue-100 text-blue-700 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shadow">2</div>
+                <p class="mt-2 font-semibold">Issue JWT</p>
+                <p class="text-sm text-slate-500">Backend validates and issues a signed JWT token.</p>
+            </div>
+            <div class="text-2xl text-slate-400 hidden md:block">→</div>
+            <!-- Step 3: Store Token -->
+            <div class="flex-1 flex flex-col items-center">
+                <div class="bg-blue-100 text-blue-700 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shadow">3</div>
+                <p class="mt-2 font-semibold">Store Token</p>
+                <p class="text-sm text-slate-500">Frontend securely stores the token (e.g., HttpOnly cookie).</p>
+            </div>
+            <div class="text-2xl text-slate-400 hidden md:block">→</div>
+            <!-- Step 4: Authenticated Request -->
+            <div class="flex-1 flex flex-col items-center">
+                <div class="bg-blue-100 text-blue-700 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shadow">4</div>
+                <p class="mt-2 font-semibold">API Request</p>
+                <p class="text-sm text-slate-500">Token is sent with every API request via Authorization header.</p>
+            </div>
+            <div class="text-2xl text-slate-400 hidden md:block">→</div>
+            <!-- Step 5: Authorize -->
+            <div class="flex-1 flex flex-col items-center">
+                <div class="bg-blue-100 text-blue-700 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shadow">5</div>
+                <p class="mt-2 font-semibold">Authorize</p>
+                <p class="text-sm text-slate-500">Backend filter validates token and permits access.</p>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Phase Navigation -->
+    <nav class="flex justify-center mb-8 space-x-2 md:space-x-4">
+        <button data-phase="phase1" class="phase-tab tab-active px-4 py-2 md:px-6 md:py-3 rounded-full font-semibold transition-all duration-300">Phase 1: Foundation</button>
+        <button data-phase="phase2" class="phase-tab tab-inactive px-4 py-2 md:px-6 md:py-3 rounded-full font-semibold transition-all duration-300">Phase 2: Advanced</button>
+        <button data-phase="phase3" class="phase-tab tab-inactive px-4 py-2 md:px-6 md:py-3 rounded-full font-semibold transition-all duration-300">Phase 3: Hardening</button>
+    </nav>
+
+    <main id="phases-content">
+        <!-- Phase 1: Foundation -->
+        <section id="phase1" class="phase-content">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-slate-900">Phase 1: The Foundation</h2>
+                <p class="mt-2 max-w-2xl mx-auto text-slate-600">This initial phase is about establishing the core of your application. You will set up the basic project, implement a secure password-based login, integrate stateless JWTs, and learn how to protect your API endpoints based on user authentication and roles.</p>
+            </div>
+            <div id="phase1-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- Phase 2: Advanced Auth Methods -->
+        <section id="phase2" class="phase-content hidden">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-slate-900">Phase 2: Advanced Authentication Methods</h2>
+                <p class="mt-2 max-w-2xl mx-auto text-slate-600">With the foundation in place, this phase introduces modern, user-friendly authentication options. You'll add social logins via OAuth2, build a secure password reset flow using email verification, and implement robust Two-Factor Authentication (2FA) with time-based codes.</p>
+            </div>
+            <div id="phase2-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- Phase 3: Hardening -->
+        <section id="phase3" class="phase-content hidden">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-slate-900">Phase 3: Hardening & Production Readiness</h2>
+                <p class="mt-2 max-w-2xl mx-auto text-slate-600">The final phase focuses on securing your application for a production environment. You'll enforce HTTPS, implement refresh tokens for better UX, add protection against brute-force attacks, and configure essential security headers and cross-origin policies (CORS).</p>
+            </div>
+            <div id="phase3-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+    </main>
+
+    <!-- Visualization Section -->
+    <section id="visualization" class="mt-16 bg-white p-6 rounded-xl shadow-sm">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-slate-900">Feature Comparison</h2>
+            <p class="mt-2 max-w-2xl mx-auto text-slate-600">This chart provides a comparative analysis of key authentication features based on their typical implementation complexity, the security value they add, and their impact on user experience. Use it to understand the trade-offs when planning your application's security strategy.</p>
+        </div>
+        <div class="chart-container">
+            <canvas id="featuresRadarChart"></canvas>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    const roadmapData = {
+        phase1: [
+            {
+                title: "Basic Spring Boot Setup & Login",
+                icon: "⚙️",
+                content: `
+                        <p><strong>Tech:</strong> Spring Web, Spring Security, Spring Data JPA, H2/PostgreSQL.</p>
+                        <p class="mt-2"><strong>What to do:</strong> Create a User entity with email, password, and roles.</p>
+                        <p class="mt-2"><strong>Critical Security Point:</strong> Implement password hashing using <strong>BCryptPasswordEncoder</strong>. Never store plaintext passwords.</p>
+                        <p class="mt-2"><strong>Goal:</strong> A user can register and log in securely with a hashed password.</p>
+                    `
+            },
+            {
+                title: "JWT Integration",
+                icon: "🔑",
+                content: `
+                        <p><strong>What to do:</strong> Add a JWT library (e.g., jjwt). Create a service to generate a token on successful login and a filter to validate tokens on every request.</p>
+                        <p class="mt-2"><strong>Goal:</strong> Move from a stateful session to a stateless, token-based backend. The login endpoint will now return a JWT.</p>
+                    `
+            },
+            {
+                title: "Securing API Endpoints",
+                icon: "🛡️",
+                content: `
+                        <p><strong>What to do:</strong> Use method-level security (e.g., <code>@PreAuthorize("hasRole('ADMIN')")</code>) or configuration-based rules to protect your API endpoints.</p>
+                        <p class="mt-2"><strong>Goal:</strong> Define clear access rules for different parts of your API based on user authentication status and roles.</p>
+                    `
+            }
+        ],
+        phase2: [
+            {
+                title: "Social Login (OAuth2)",
+                icon: "👥",
+                content: `
+                        <p><strong>What to do:</strong> Use Spring Security's built-in OAuth2 support. Configure it with client credentials from providers like Google or GitHub.</p>
+                        <p class="mt-2"><strong>How it works:</strong> Spring handles the OAuth2 redirect flow. You'll receive user details, create or link a local user account, and issue your own JWT.</p>
+                        <p class="mt-2"><strong>Goal:</strong> Allow users to log in seamlessly using their existing social media accounts.</p>
+                    `
+            },
+            {
+                title: "Password Reset via Email",
+                icon: "📧",
+                content: `
+                        <p><strong>What to do:</strong>
+                            <ol class="list-decimal list-inside ml-4 mt-1">
+                                <li>Create a <code>/forgot-password</code> endpoint.</li>
+                                <li>Generate a secure, single-use token and email it to the user.</li>
+                                <li>Create a <code>/reset-password</code> endpoint to validate the token and update the password.</li>
+                            </ol>
+                        </p>
+                        <p class="mt-2"><strong>Goal:</strong> A secure, standard flow for users to recover their accounts.</p>
+                    `
+            },
+            {
+                title: "Two-Factor Authentication (2FA)",
+                icon: "📱",
+                content: `
+                        <p><strong>What to do:</strong> Implement Time-based One-Time Password (TOTP). Generate a secret key for the user, display it as a QR code for apps like Google Authenticator. Modify the login flow to require a TOTP code after password validation.</p>
+                        <p class="mt-2"><strong>Goal:</strong> Add a powerful second layer of security to user accounts.</p>
+                    `
+            }
+        ],
+        phase3: [
+            {
+                title: "HTTPS Everywhere",
+                icon: "🔒",
+                content: `
+                        <p><strong>What to do:</strong> Configure your server to only accept connections over HTTPS. This is non-negotiable for production to protect data in transit.</p>
+                        <p class="mt-2"><strong>Goal:</strong> Encrypt all communication between the client and server to prevent sniffing of tokens and user data.</p>
+                    `
+            },
+            {
+                title: "Refresh Tokens",
+                icon: "🔄",
+                content: `
+                        <p><strong>What to do:</strong> Issue a short-lived access JWT (e.g., 15 mins) and a long-lived, securely stored refresh token. Use the refresh token to get a new access JWT without forcing the user to log in again.</p>
+                        <p class="mt-2"><strong>Goal:</strong> Improve security by minimizing the lifetime of access tokens while maintaining a good user experience.</p>
+                    `
+            },
+            {
+                title: "Account Lockout & Security Headers",
+                icon: "🚫",
+                content: `
+                        <p><strong>What to do:</strong> Implement account lockout after several failed login attempts to prevent brute-force attacks. Configure essential security headers (like Content-Security-Policy) and CORS policies.</p>
+                        <p class="mt-2"><strong>Goal:</strong> Harden the application against common web vulnerabilities and attacks.</p>
+                    `
+            }
+        ]
+    };
+
+    function createCard(item) {
+        return `
+                <div class="card bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer">
+                    <div class="card-header p-5 flex justify-between items-center">
+                        <div class="flex items-center">
+                            <span class="text-3xl mr-4">${item.icon}</span>
+                            <h3 class="text-lg font-bold text-slate-900">${item.title}</h3>
+                        </div>
+                        <div class="chevron text-2xl text-slate-500">
+                            <span>&#9660;</span>
+                        </div>
+                    </div>
+                    <div class="card-details px-5 pb-5 text-slate-600 space-y-2">
+                        ${item.content}
+                    </div>
+                </div>
+            `;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const phase1Cards = document.getElementById('phase1-cards');
+        const phase2Cards = document.getElementById('phase2-cards');
+        const phase3Cards = document.getElementById('phase3-cards');
+
+        phase1Cards.innerHTML = roadmapData.phase1.map(createCard).join('');
+        phase2Cards.innerHTML = roadmapData.phase2.map(createCard).join('');
+        phase3Cards.innerHTML = roadmapData.phase3.map(createCard).join('');
+
+        const phaseTabs = document.querySelectorAll('.phase-tab');
+        const phaseContents = document.querySelectorAll('.phase-content');
+        const cards = document.querySelectorAll('.card');
+
+        phaseTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                phaseTabs.forEach(t => t.classList.replace('tab-active', 'tab-inactive'));
+                tab.classList.replace('tab-inactive', 'tab-active');
+
+                phaseContents.forEach(content => {
+                    if (content.id === tab.dataset.phase) {
+                        content.classList.remove('hidden');
+                    } else {
+                        content.classList.add('hidden');
+                    }
+                });
+            });
+        });
+
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                card.classList.toggle('open');
+            });
+        });
+
+        // Chart.js Radar Chart
+        const ctx = document.getElementById('featuresRadarChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['Social Login (OAuth2)', '2FA (TOTP)', 'Password Reset', 'Refresh Tokens', 'Account Lockout'],
+                datasets: [{
+                    label: 'Implementation Complexity',
+                    data: [6, 8, 7, 9, 5],
+                    fill: true,
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    pointBackgroundColor: 'rgb(255, 99, 132)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(255, 99, 132)'
+                }, {
+                    label: 'Security Value',
+                    data: [7, 10, 6, 8, 7],
+                    fill: true,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgb(54, 162, 235)',
+                    pointBackgroundColor: 'rgb(54, 162, 235)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(54, 162, 235)'
+                }, {
+                    label: 'User Experience Impact',
+                    data: [9, 6, 8, 10, 5],
+                    fill: true,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgb(75, 192, 192)',
+                    pointBackgroundColor: 'rgb(75, 192, 192)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(75, 192, 192)'
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: {
+                            display: true
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: 10,
+                        pointLabels: {
+                            font: {
+                                size: 12,
+                            }
+                        },
+                        ticks: {
+                            backdropColor: 'rgba(255, 255, 255, 0.75)',
+                            color: '#6b7280'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.r !== null) {
+                                    label += context.parsed.r + ' / 10';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>
